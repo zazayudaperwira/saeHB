@@ -1,0 +1,11 @@
+Package: saeHB
+Type: Package
+Title: Small Area Estimation using Hierarchical Bayesian Method
+Version: 0.1.0
+Author: Zaza Yuda Perwira [aut, cre], Azka Ubaidillah [aut], Ika Yuni Wulansari [aut]
+Maintainer: Zaza Yuda Perwira <221710086@stis.ac.id>
+Description: Provides several functions for area level of Small Area Estimation (SAE) using Hierarchical Bayesian (HB) method. In the first edition, this package provides model using Univariate Normal distribution and Univariate Beta distribution for variables of interest. This package also provides dataset produced by a data generation. "rjags" packages is employed  to obtain parameter estimation. Model based estimators involves the HB estimators which include the mean and the variation of mean.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
