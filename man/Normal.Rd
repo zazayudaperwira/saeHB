@@ -30,8 +30,48 @@ Normal(
 \item{data}{The data frame}
 }
 \value{
-
+This function returns a list of the following objects:
+   \item{Est}{A vector with the values of Small Area mean Estimates using Hierarchical bayesian method }
+   \item{sd}{A vector with the values of Standard deviation of Small Area Mean Estimates using Hierarchical bayesian method}
+   \item{refVar}{Estimated random effect variances}
+   \item{coefficient}{A dataframe with the estimated model coefficient}
+   \item{plot}{Trace, Dencity, Autocorrelation Function Plot of MCMC samples}
 }
 \description{
-This function is implemented to variable of interest \eqn{(y)} that assumed to be a Normal Distribution. The range of data is \eqn{(-\infty < y < \infty)}
+This function is implemented to variable of interest \eqn{(y)} that assumed to be a Normal Distribution. The range of data is \eqn{(-\infty < y < \infty)}.
+}
+\examples{
+
+\dontrun{
+
+##Load Dataset
+data(datanormal)
+
+#Compute Fitted Model
+#y ~ x1 +x2 +x3
+
+
+## For data without any nonsampled area
+saeHBnormal <- Normal(formula = y ~ x1+x2+x3,vardir = "vardir", data = dataNormal )
+saeHBnormal$Est                                 #Small Area mean Estimates
+saeHBnormal$sd                                  #Standard deviation of Small Area Mean Estimates
+saeHBnormal$refVar                              #refVar
+saeHBnormal$coefficient                         #coefficient
+autocorr.plot(saeHBnormal$plot[[3]])            #ACF Plot
+plot(saeHBnormal$plot[[3]])                     #Dencity and trace plot
+
+## For data with nonsampled area
+##Load Dataset
+data(datanormalNs)
+saeHBnormalNs <- Normal(formula = y ~ x1+x2+x3,vardir = "vardir",data=dataNormalNs)
+saeHBnormalNs$Est                                 #Small Area mean Estimates
+saeHBnormalNs$sd                                  #Standard deviation of Small Area Mean Estimates
+saeHBnormalNs$refVar                              #refVar
+saeHBnormalNs$coefficient                         #coefficient
+autocorr.plot(saeHBnormalNs$plot[[3]])            #ACF Plot
+plot(saeHBnormalNs$plot[[3]])                     #Dencity and trace plot
+
+}
+
+
 }

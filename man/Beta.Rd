@@ -28,12 +28,50 @@ Beta(
 }
 \value{
 This function returns a list of the following objects:
-   \item{Est}{A vector with the values of Hierarchical Bayesian Estimators}
-   \item{sd}{A vector with the values of standar error of Hierarchical Bayesian Estimators}
+   \item{Est}{A vector with the values of Small Area mean Estimates using Hierarchical bayesian method }
+   \item{sd}{A vector with the values of Standard deviation of Small Area Mean Estimates using Hierarchical bayesian method}
    \item{refVar}{Estimated random effect variances}
    \item{coefficient}{A dataframe with the estimated model coefficient}
    \item{plot}{Trace, Dencity, Autocorrelation Function Plot of MCMC samples}
 }
 \description{
-This function is implemented to variable of interest \eqn{(y)} that assumed to be a Beta Distribution. The range of data must be \eqn{1<y<1}. The data proportion is supposed to be implemented with this function.
+This function is implemented to variable of interest \eqn{(y)} that assumed to be a Beta Distribution. The range of data must be \eqn{0<y<1}. The data proportion is supposed to be implemented with this function.
+}
+\examples{
+
+\dontrun{
+##Load Dataset
+data(dataBeta)
+
+
+#Compute Fitted Model
+#y ~ x1 +x2
+
+
+## For data without any nonsampled area
+##Load Dataset
+data(dataBeta)
+saeHBbeta <- Beta(formula = y ~ x1 +x2, data = dataBeta )
+saeHBbeta$Est                                 #Small Area mean Estimates
+saeHBbeta$sd                                  #Standard deviation of Small Area Mean Estimates
+saeHBbeta$refVar                              #refVar
+saeHBbeta$coefficient                         #coefficient
+autocorr.plot(saeHBbeta$plot[[3]])            #ACF Plot
+plot(saeHBbeta$plot[[3]])                     #Dencity and trace plot
+
+## For data with nonsampled area
+##Load Dataset
+data(dataBetaNs)
+saeHBbetaNs <- Beta(formula = y ~ x1 +x2,  data = dataBetaNs )
+saeHBbetaNs$Est                                 #Small Area mean Estimates
+saeHBbetaNs$sd                                  #Standard deviation of Small Area Mean Estimates
+saeHBbetaNs$refVar                              #refVar
+saeHBbetaNs$coefficient                         #coefficient
+autocorr.plot(saeHBbetaNs$plot[[3]])            #ACF Plot
+plot(saeHBbetaNs$plot[[3]])                     #Dencity and trace plot
+
+}
+
+
+
 }

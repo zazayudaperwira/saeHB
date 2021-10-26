@@ -2,12 +2,26 @@ Package: saeHB
 Type: Package
 Title: Small Area Estimation using Hierarchical Bayesian Method
 Version: 0.1.0
-Author: Zaza Yuda Perwira [aut, cre], Azka Ubaidillah [aut], Ika Yuni Wulansari [aut]
+Author:  Azka Ubaidillah [aut], Ika Yuni Wulansari [aut], Zaza Yuda Perwira [aut, cre]
 Maintainer: Zaza Yuda Perwira <221710086@stis.ac.id>
-Description: Provides several functions for area level of Small Area Estimation (SAE) using Hierarchical Bayesian (HB) method. In the first edition, this package provides model using Univariate Normal distribution and Univariate Beta distribution for variables of interest. This package also provides dataset produced by a data generation. "rjags" packages is employed  to obtain parameter estimation. Model based estimators involves the HB estimators which include the mean and the variation of mean.
+Description: We designed this package to provide several functions for area level of small area estimation using hierarchical Bayesian (HB) method. This package provides model using Univariate Normal distribution and Univariate Beta distribution for variables of interest. This package also provides a dataset produced by a data generation. The "rjags" package is employed to obtain parameter estimates. Model-based estimators involves the HB estimators which include the mean and the variation of mean. For the reference, see Rao and Molina (2015).
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
 URL: https://github.com/zazaperwira/saeHB
 BugReports: https://github.com/zazaperwira/saeHB/issues
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Imports: 
+    stringr,
+    coda,
+    rjags,
+    stats,
+    grDevices,
+    graphics
+SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)
+Depends:
+    R (>= 2.10)

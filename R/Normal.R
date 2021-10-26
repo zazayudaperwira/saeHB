@@ -1,5 +1,5 @@
 #' @title Small Area Estimation using Hierarchical Bayesian under Normal Distribution
-#' @description This function is implemented to variable of interest \eqn{(y)} that assumed to be a Normal Distribution. The range of data is \eqn{(-\infty < y < \infty)}
+#' @description This function is implemented to variable of interest \eqn{(y)} that assumed to be a Normal Distribution. The range of data is \eqn{(-\infty < y < \infty)}.
 #' @param formula Formula that describe the fitted model
 #' @param vardir Sampling variances of direct estimations
 #' @param iter.update Number of updates with default \code{3}
@@ -8,10 +8,49 @@
 #' @param burn.in Number of iterations to discard at the begining with default \code{1000}
 #' @param data The data frame
 #'
-#' @return
-#' @export
+#' @return This function returns a list of the following objects:
+#'    \item{Est}{A vector with the values of Small Area mean Estimates using Hierarchical bayesian method }
+#'    \item{sd}{A vector with the values of Standard deviation of Small Area Mean Estimates using Hierarchical bayesian method}
+#'    \item{refVar}{Estimated random effect variances}
+#'    \item{coefficient}{A dataframe with the estimated model coefficient}
+#'    \item{plot}{Trace, Dencity, Autocorrelation Function Plot of MCMC samples}
+#'
+#' @export Normal
 #'
 #' @examples
+#'
+#' \dontrun{
+#'
+#' ##Load Dataset
+#' data(datanormal)
+#'
+#' #Compute Fitted Model
+#' #y ~ x1 +x2 +x3
+#'
+#'
+#' ## For data without any nonsampled area
+#' saeHBnormal <- Normal(formula = y ~ x1+x2+x3,vardir = "vardir", data = dataNormal )
+#' saeHBnormal$Est                                 #Small Area mean Estimates
+#' saeHBnormal$sd                                  #Standard deviation of Small Area Mean Estimates
+#' saeHBnormal$refVar                              #refVar
+#' saeHBnormal$coefficient                         #coefficient
+#' autocorr.plot(saeHBnormal$plot[[3]])            #ACF Plot
+#' plot(saeHBnormal$plot[[3]])                     #Dencity and trace plot
+#'
+#' ## For data with nonsampled area
+#' ##Load Dataset
+#' data(datanormalNs)
+#' saeHBnormalNs <- Normal(formula = y ~ x1+x2+x3,vardir = "vardir",data=dataNormalNs)
+#' saeHBnormalNs$Est                                 #Small Area mean Estimates
+#' saeHBnormalNs$sd                                  #Standard deviation of Small Area Mean Estimates
+#' saeHBnormalNs$refVar                              #refVar
+#' saeHBnormalNs$coefficient                         #coefficient
+#' autocorr.plot(saeHBnormalNs$plot[[3]])            #ACF Plot
+#' plot(saeHBnormalNs$plot[[3]])                     #Dencity and trace plot
+#'
+#' }
+#'
+#'
 Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000, data){
 
 
@@ -21,7 +60,7 @@ Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, bur
   formuladata <- model.frame(formula,data,na.action=NULL)
   if (any(is.na(formuladata[,-1])))
     stop("Auxiliary Variables contains NA values.")
-  auxVar <- formuladata[,-1]
+  auxVar <- as.matrix(formuladata[,-1])
   nvar <- ncol(auxVar) + 1
   formuladata <- data.frame(formuladata,vardir = data[,vardir])
 
@@ -34,7 +73,7 @@ Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, bur
   }
 
 
-  if (!any(is.na(formuladata[,1])))  { #Opening "for" Tersampel saja
+  if (!any(is.na(formuladata[,1])))  {
 
 
     formuladata <- as.matrix(na.omit(formuladata))
@@ -50,8 +89,8 @@ Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, bur
 
 
     for (i in 1:iter.update) {
-      dat <- list("n" = n,"nvar"=nvar,"y" = formuladata[,1], "x"=x[,-1],"mu.b"=mu.b,"tau.b"=tau.b,
-                  "tau.ua"=tau.ua,"tau.ub"=tau.ub, "vardir"=formuladata[,(nvar+1)])  # names list of numbers
+      dat <- list("n" = n,"nvar"=nvar,"y" = formuladata[,1], "x"=as.matrix(x[,-1]),"mu.b"=mu.b,"tau.b"=tau.b,
+                  "tau.ua"=tau.ua,"tau.ub"=tau.ub, "vardir"=formuladata[,(nvar+1)])
       inits <- list(u = rep(0,n), b = mu.b, tau.u = 1)
       cat("model {
 					for (i in 1:n) {
@@ -87,16 +126,15 @@ Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, bur
       tau.ub = result_samps$statistics[2+nvar+n,1]/result_samps$statistics[2+nvar+n,2]^2
 
 
-    } #closing of iteration update for Sampled Area
+    }
 
     result_samps=summary(samps1)
     b.varnames <- list()
     for (i in 1:(nvar)) {
       idx.b.varnames <- as.character(i-1)
-      b.varnames[i] <-str_replace_all(paste("b[",idx.b.varnames,"]"),pattern=" ", repl="")
+      b.varnames[i] <-str_replace_all(paste("b[",idx.b.varnames,"]"),pattern=" ", replacement="")
     }
 
-    #Untuk Plot dan b.varnames
     result_mcmc <- samps1[,c(2:(nvar+1))]
     colnames(result_mcmc[[1]]) <- b.varnames
 
@@ -117,7 +155,7 @@ Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, bur
 
   }
 
-  else {   # Area Non sample
+  else {
 
     formuladata <- as.data.frame(formuladata)
 
@@ -143,8 +181,8 @@ Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, bur
 
 
     for (i in 1:iter.update) {
-      dat <- list("n1" = n1,"n2"=n2,"nvar"=nvar,"y_sampled" = data_sampled[,1], "x_sampled"=data_sampled[,2:nvar],
-                  "x_nonsampled"=data_nonsampled[,2:nvar],"mu.b"=mu.b,
+      dat <- list("n1" = n1,"n2"=n2,"nvar"=nvar,"y_sampled" = data_sampled[,1], "x_sampled"=as.matrix(data_sampled[,2:nvar]),
+                  "x_nonsampled"=as.matrix(data_nonsampled[,2:nvar]),"mu.b"=mu.b,
                   "tau.b"=tau.b, "tau.ua"=tau.ua,"tau.ub"=tau.ub,"vardir"=data_sampled$vardir)
 
       inits <- list(u = rep(0,n1), v = rep(0,n2), b = mu.b, tau.u = 1)
@@ -190,10 +228,8 @@ Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, bur
     b.varnames <- list()
     for (i in 1:(nvar)) {
       idx.b.varnames <- as.character(i-1)
-      b.varnames[i] <-str_replace_all(paste("b[",idx.b.varnames,"]"),pattern=" ", repl="")
+      b.varnames[i] <-str_replace_all(paste("b[",idx.b.varnames,"]"),pattern=" ", replacement="")
     }
-
-    #Untuk Plot dan b.varnames
     result_mcmc <- samps1[,c(2:(nvar+1))]
     colnames(result_mcmc[[1]]) <- b.varnames
 
@@ -218,8 +254,7 @@ Normal <- function(formula, vardir, iter.update=3, iter.mcmc=2000, thin = 1, bur
     rownames(q_beta) <- b.varnames
     beta <- cbind(beta,q_beta)
 
-  } #closing else
-
+  }
 
   result$Est = Estimation$mean
   result$sd         = Estimation$sd

@@ -1,5 +1,5 @@
 #' @title Small Area Estimation using Hierarchical Bayesian under Beta Distribution
-#' @description This function is implemented to variable of interest \eqn{(y)} that assumed to be a Beta Distribution. The range of data must be \eqn{1<y<1}. The data proportion is supposed to be implemented with this function.
+#' @description This function is implemented to variable of interest \eqn{(y)} that assumed to be a Beta Distribution. The range of data must be \eqn{0<y<1}. The data proportion is supposed to be implemented with this function.
 #' @param formula Formula that describe the fitted model
 #' @param iter.update Number of updates with default \code{3}
 #' @param iter.mcmc Number of total iterations per chain with default \code{2000}
@@ -8,14 +8,51 @@
 #' @param data The data frame
 #'
 #' @return This function returns a list of the following objects:
-#'    \item{Est}{A vector with the values of Hierarchical Bayesian Estimators}
-#'    \item{sd}{A vector with the values of standar error of Hierarchical Bayesian Estimators}
+#'    \item{Est}{A vector with the values of Small Area mean Estimates using Hierarchical bayesian method }
+#'    \item{sd}{A vector with the values of Standard deviation of Small Area Mean Estimates using Hierarchical bayesian method}
 #'    \item{refVar}{Estimated random effect variances}
 #'    \item{coefficient}{A dataframe with the estimated model coefficient}
 #'    \item{plot}{Trace, Dencity, Autocorrelation Function Plot of MCMC samples}
-#' @export
+#'
+#' @export Beta
 #'
 #' @examples
+#'
+#' \dontrun{
+#' ##Load Dataset
+#' data(dataBeta)
+#'
+#'
+#' #Compute Fitted Model
+#' #y ~ x1 +x2
+#'
+#'
+#' ## For data without any nonsampled area
+#' ##Load Dataset
+#' data(dataBeta)
+#' saeHBbeta <- Beta(formula = y ~ x1 +x2, data = dataBeta )
+#' saeHBbeta$Est                                 #Small Area mean Estimates
+#' saeHBbeta$sd                                  #Standard deviation of Small Area Mean Estimates
+#' saeHBbeta$refVar                              #refVar
+#' saeHBbeta$coefficient                         #coefficient
+#' autocorr.plot(saeHBbeta$plot[[3]])            #ACF Plot
+#' plot(saeHBbeta$plot[[3]])                     #Dencity and trace plot
+#'
+#' ## For data with nonsampled area
+#' ##Load Dataset
+#' data(dataBetaNs)
+#' saeHBbetaNs <- Beta(formula = y ~ x1 +x2,  data = dataBetaNs )
+#' saeHBbetaNs$Est                                 #Small Area mean Estimates
+#' saeHBbetaNs$sd                                  #Standard deviation of Small Area Mean Estimates
+#' saeHBbetaNs$refVar                              #refVar
+#' saeHBbetaNs$coefficient                         #coefficient
+#' autocorr.plot(saeHBbetaNs$plot[[3]])            #ACF Plot
+#' plot(saeHBbetaNs$plot[[3]])                     #Dencity and trace plot
+#'
+#' }
+#'
+#'
+#'
 Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000, data){
 
   result <- list(Est = NA, sd = NA, refVar = NA, coefficient = NA,
@@ -24,14 +61,14 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
   formuladata <- model.frame(formula,data,na.action=NULL)
   if (any(is.na(formuladata[,-1])))
     stop("Auxiliary Variables contains NA values.")
-  #check apakah ada NA value atau 0, kalau ada ganti ke NA
-  formuladata[,1] <- ifelse(formuladata[,1]==0,NA,formuladata[,1])
-  formuladata[,1] <- ifelse(formuladata[,1]==1,0.999,formuladata[,1])
 
 
-  #Running untuk tersampel semua
-  if (!any(is.na(formuladata[,1])) && !any(formuladata[,1]==0)  ){ #Opening "for" Tersampel saja
+  if (!any(is.na(formuladata[,1]))){
     formuladata <- as.matrix(na.omit(formuladata))
+
+    if (any(formuladata[,1]==0) || any(formuladata[,1]==1)){
+      stop("response variable must be 0 < " ,formula[2], " < 1")
+    }
     x <- model.matrix(formula,data = as.data.frame(formuladata))
     x <- as.matrix(x)
     n <- nrow(formuladata)
@@ -43,7 +80,7 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
     for(iter in 1:iter.update){
 
       dat <- list("n"=n,"nvar"=nvar,"y"=formuladata[,1],"x"=as.matrix(formuladata[,2:nvar]),"mu.b"=mu.b,
-                  "tau.b"=tau.b,"tau.ua"=tau.ua, "tau.ub"=tau.ub, "phi.a"=phi.a, "phi.b"=phi.b) #Names List of number
+                  "tau.b"=tau.b,"tau.ua"=tau.ua, "tau.ub"=tau.ub, "phi.a"=phi.a, "phi.b"=phi.b)
 
       inits <- list(phi=1, u=rep(0,n), b = mu.b, tau.u = 1)
 
@@ -87,15 +124,14 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
       tau.ub = result_samps$statistics[3+nvar+n,1]/result_samps$statistics[3+nvar+n,2]^2
 
 
-    }#closing for Iteration update
+    }
     result_samps=summary(samps1)
     b.varnames <- list()
     for (i in 1:(nvar)) {
       idx.b.varnames <- as.character(i-1)
-      b.varnames[i] <-str_replace_all(paste("b[",idx.b.varnames,"]"),pattern=" ", repl="")
+      b.varnames[i] <-str_replace_all(paste("b[",idx.b.varnames,"]"),pattern=" ", replacement="")
     }
 
-    #Untuk Plot dan b.varnames
     result_mcmc <- samps1[,c(2:(nvar+1))]
     colnames(result_mcmc[[1]]) <- b.varnames
 
@@ -116,9 +152,8 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
 
   }
 
-  else {   # Area Non sample
+  else {
     formuladata <- as.data.frame(formuladata)
-    #x <- as.matrix(formuladata)
     n <- nrow(formuladata)
     nvar <- ncol(formuladata)
     mu.b =rep(0,nvar)
@@ -127,8 +162,11 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
 
     formuladata$idx <- rep(1:n)
     data_sampled <- na.omit(formuladata)
-    data_nonsampled <- formuladata[-data_sampled$idx,]
 
+    if (any(data_sampled[,1]==0) || any(data_sampled[,1]==1)){
+      stop("response variable must be 0 < " ,formula[2], " < 1")}
+
+    data_nonsampled <- formuladata[-data_sampled$idx,]
     r=data_nonsampled$idx
     n1=nrow(data_sampled)
     n2=nrow(data_nonsampled)
@@ -136,8 +174,8 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
 
 
     for(iter in 1:iter.update){
-      dat <- list("n1" = n1,"n2"=n2,"nvar"=nvar,"y_sampled" = data_sampled[,1], "x_sampled"=data_sampled[,2:nvar],
-                  "x_nonsampled"=data_nonsampled[,2:nvar],"mu.b"=mu.b,
+      dat <- list("n1" = n1,"n2"=n2,"nvar"=nvar,"y_sampled" = data_sampled[,1], "x_sampled"=as.matrix(data_sampled[,2:nvar]),
+                  "x_nonsampled"=as.matrix(data_nonsampled[,2:nvar]),"mu.b"=mu.b,
                   "tau.b"=tau.b, "tau.ua"=tau.ua,"tau.ub"=tau.ub, "phi.a"=phi.a,"phi.b"=phi.b)
 
       inits <- list(phi=1,u = rep(0,n1),v = rep(0,n2), b = mu.b, tau.u = 1)
@@ -182,16 +220,13 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
       phi.a = result_samps$statistics[2+nvar+n,1]/result_samps$statistics[2+nvar+n,2]^2
       tau.ua = result_samps$statistics[3+nvar+n,1]^2/result_samps$statistics[3+nvar+n,2]^2
       tau.ub = result_samps$statistics[3+nvar+n,1]/result_samps$statistics[3+nvar+n,2]^2
-
-    } #closinf for non sample iteration
+    }
     result_samps=summary(samps1)
     b.varnames <- list()
     for (i in 1:(nvar)) {
       idx.b.varnames <- as.character(i-1)
-      b.varnames[i] <-str_replace_all(paste("b[",idx.b.varnames,"]"),pattern=" ", repl="")
+      b.varnames[i] <-str_replace_all(paste("b[",idx.b.varnames,"]"),pattern=" ", replacement="")
     }
-
-    #Untuk Plot dan b.varnames
     result_mcmc <- samps1[,c(2:(nvar+1))]
     colnames(result_mcmc[[1]]) <- b.varnames
 
@@ -213,7 +248,7 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
     q_beta <- (Quantiles[2:(nvar+1),])
     rownames(q_beta) <- b.varnames
     beta <- cbind(beta,q_beta)
-  } #closing else
+  }
 
   result$Est = Estimation$mean
   result$sd         = Estimation$sd
@@ -221,4 +256,6 @@ Beta <- function(formula, iter.update=3, iter.mcmc=2000, thin = 1, burn.in =1000
   result$coefficient = beta
   result$plot       = list(graphics.off() ,par(mar=c(2,2,2,2)),autocorr.plot(result_mcmc,col="brown2",lwd=2),plot(result_mcmc,col="brown2",lwd=2))
   return(result)
+
+
 }
