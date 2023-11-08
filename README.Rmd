@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-We designed this package to provide several functions for area level of small area estimation using hierarchical Bayesian (HB) method. This package provides model using Univariate Normal distribution and Univariate Beta distribution for variables of interest. This package also provides a dataset produced by a data generation. The ‘rjags’ package is employed to obtain parameter estimates. Model-based estimators involves the HB estimators which include the mean and the variation of mean. For the reference, see Rao and Molina (2015).
+Provides several functions for area level of small area estimation using hierarchical Bayesian (HB) method with Univariate Normal distribution and Univariate Beta distribution for variables of interest. Some dataset produced by a data generation are also provided. The 'rjags' package is employed to obtain parameter estimates. Model-based estimators involves the HB estimators which include the mean and the variation of mean. For the reference, see Rao and Molina (2015) <doi:10.1002/9781118735855>.
 
 
 ## Functions
@@ -27,4 +27,4 @@ We designed this package to provide several functions for area level of small ar
 
 
 ## References
-* Rao, J.N.K & Molina. (2015). Small Area Estimation 2nd Edition. New York: John Wiley and Sons, Inc.
+* Rao, J.N.K & Molina. (2015). Small Area Estimation 2nd Edition. New York: John Wiley and Sons, Inc. <doi:10.1002/9781118735855>

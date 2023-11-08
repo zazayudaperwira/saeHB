@@ -7,9 +7,12 @@
 Beta(
   formula,
   iter.update = 3,
-  iter.mcmc = 2000,
-  thin = 1,
-  burn.in = 1000,
+  iter.mcmc = 10000,
+  coef,
+  var.coef,
+  thin = 3,
+  burn.in = 2000,
+  tau.u = 1,
   data
 )
 }
@@ -18,18 +21,23 @@ Beta(
 
 \item{iter.update}{Number of updates with default \code{3}}
 
-\item{iter.mcmc}{Number of total iterations per chain with default \code{2000}}
+\item{iter.mcmc}{Number of total iterations per chain with default \code{10000}}
 
-\item{thin}{Thinning rate, must be a positive integer with default \code{1}}
+\item{coef}{a vector contains prior initial value of Coefficient of Regression Model for fixed effect with default vector of \code{0} with the length of the number of regression coefficients}
 
-\item{burn.in}{Number of iterations to discard at the begining with default \code{1000}}
+\item{var.coef}{a vector contains prior initial value of variance of Coefficient of Regression Model with default vector of \code{1} with the length of the number of regression coefficients}
+
+\item{thin}{Thinning rate, must be a positive integer with default \code{2}}
+
+\item{burn.in}{Number of iterations to discard at the beginning with default \code{2000}}
+
+\item{tau.u}{Prior initial value of inverse of Variance of area random effect with default \code{1}}
 
 \item{data}{The data frame}
 }
 \value{
 This function returns a list of the following objects:
    \item{Est}{A vector with the values of Small Area mean Estimates using Hierarchical bayesian method }
-   \item{sd}{A vector with the values of Standard deviation of Small Area Mean Estimates using Hierarchical bayesian method}
    \item{refVar}{Estimated random effect variances}
    \item{coefficient}{A dataframe with the estimated model coefficient}
    \item{plot}{Trace, Dencity, Autocorrelation Function Plot of MCMC samples}
@@ -38,40 +46,54 @@ This function returns a list of the following objects:
 This function is implemented to variable of interest \eqn{(y)} that assumed to be a Beta Distribution. The range of data must be \eqn{0<y<1}. The data proportion is supposed to be implemented with this function.
 }
 \examples{
+\donttest{
+#Data Generation
+set.seed(123)
+m=30
+x1=runif(m,0,1)
+x2=runif(m,0,1)
+x3=runif(m,0,1)
+x4=runif(m,0,1)
+b0=b1=b2=b3=b4=0.5
+u=rnorm(m,0,1)
+pi=rgamma(1,1,0.5)
+Mu <- exp(b0+b1*x1+b2*x2+b3*x3+b4*x4+u)/(1+exp(b0+b1*x1+b2*x2+b3*x3+b4*x4+u))
+A=Mu*pi
+B=(1-Mu) * pi
+y=rbeta(m,A,B)
+y <- ifelse(y<1,y,0.99999999)
+y <- ifelse(y>0,y,0.00000001)
+MU=A/(A+B)
+vardir=A*B/((A+B)^2*(A+B+1))
+dataBeta = as.data.frame(cbind(y,x1,x2,x3,x4,vardir))
+dataBetaNs=dataBeta
+dataBetaNs$y[c(3,14,22,29,30)] <- NA
+dataBetaNs$vardir[c(3,14,22,29,30)] <- NA
 
-\dontrun{
-##Load Dataset
-data(dataBeta)
 
-
-#Compute Fitted Model
-#y ~ x1 +x2
+##Compute Fitted Model
+##y ~ x1 +x2
 
 
 ## For data without any nonsampled area
-##Load Dataset
-data(dataBeta)
-saeHBbeta <- Beta(formula = y ~ x1 +x2, data = dataBeta )
+
+vc = c(1,1,1)
+c = c(0,0,0)
+formula = y~x1+x2
+dat = dataBeta[1:10,]
+
+
+##Using parameter coef and var.coef
+saeHBbeta<-Beta(formula,var.coef=vc,iter.update=10,coef=c,data=dat)
+
 saeHBbeta$Est                                 #Small Area mean Estimates
-saeHBbeta$sd                                  #Standard deviation of Small Area Mean Estimates
-saeHBbeta$refVar                              #refVar
+saeHBbeta$refVar                              #Random effect variance
 saeHBbeta$coefficient                         #coefficient
-autocorr.plot(saeHBbeta$plot[[3]])            #ACF Plot
-plot(saeHBbeta$plot[[3]])                     #Dencity and trace plot
+#Load Library 'coda' to execute the plot
+#autocorr.plot(saeHBbeta$plot[[3]])  # is used to generate ACF Plot
+#plot(saeHBbeta$plot[[3]])           # is used to generate Density and trace plot
 
-## For data with nonsampled area
-##Load Dataset
-data(dataBetaNs)
-saeHBbetaNs <- Beta(formula = y ~ x1 +x2,  data = dataBetaNs )
-saeHBbetaNs$Est                                 #Small Area mean Estimates
-saeHBbetaNs$sd                                  #Standard deviation of Small Area Mean Estimates
-saeHBbetaNs$refVar                              #refVar
-saeHBbetaNs$coefficient                         #coefficient
-autocorr.plot(saeHBbetaNs$plot[[3]])            #ACF Plot
-plot(saeHBbetaNs$plot[[3]])                     #Dencity and trace plot
-
+##Do not use parameter coef and var.coef
+saeHBbeta <- Beta(formula,data=dataBeta)
 }
-
-
-
 }

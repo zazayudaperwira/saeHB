@@ -1,14 +1,24 @@
 Package: saeHB
 Type: Package
 Title: Small Area Estimation using Hierarchical Bayesian Method
-Version: 0.1.0
-Author:  Azka Ubaidillah [aut], Ika Yuni Wulansari [aut], Zaza Yuda Perwira [aut, cre]
-Maintainer: Zaza Yuda Perwira <221710086@stis.ac.id>
-Description: We designed this package to provide several functions for area level of small area estimation using hierarchical Bayesian (HB) method. This package provides model using Univariate Normal distribution and Univariate Beta distribution for variables of interest. This package also provides a dataset produced by a data generation. The "rjags" package is employed to obtain parameter estimates. Model-based estimators involves the HB estimators which include the mean and the variation of mean. For the reference, see Rao and Molina (2015).
+Version: 0.2.2
+Authors@R: c(person(given = "Zaza",
+           family = "Yuda Perwira",
+           role = c("aut", "cre"),
+           email = "zazaperwira@bps.go.id",
+           ),
+    person(given = "Azka",
+           family = "Ubaidillah",
+           role = "aut",
+           ),
+    person(given = "Ika",
+           family = "Yuni Wulansari",
+           role = "aut"))
+Maintainer: Zaza Yuda Perwira <zazaperwira@bps.go.id>
+Description: Provides several functions for area level of small area estimation using hierarchical Bayesian (HB) methods with several univariate distributions for variables of interest. The dataset that is used in every function is generated accordingly in the Example. The 'rjags' package is employed to obtain parameter estimates. Model-based estimators involve the HB estimators which include the mean and the variation of mean. For the reference, see Rao and Molina (2015) <doi:10.1002/9781118735855>.
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 URL: https://github.com/zazaperwira/saeHB
 BugReports: https://github.com/zazaperwira/saeHB/issues
 Suggests: 
@@ -20,6 +30,9 @@ Imports:
     coda,
     rjags,
     stats,
+    nimble,
+    CARBayesdata,
+    MASS,
     grDevices,
     graphics
 SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)
